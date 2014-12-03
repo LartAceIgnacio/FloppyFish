@@ -59,6 +59,10 @@ enum FSGameState: Int {
 
 var state:FSGameState = .FSGameStateStarting
 
+let coinheight:CGFloat = 30
+let coinWidth:CGFloat = 10
+let bonusCoinCount = 8
+
 // #pragma mark - Math functions
 extension Float {
     static func clamp(min: CGFloat, max: CGFloat, value: CGFloat) -> CGFloat {
@@ -174,7 +178,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func initCoins() {
         let screenSize: CGRect = UIScreen.mainScreen().bounds
         
-        var coin:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
+        var coin:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(coinWidth, coinheight))
         coin = SKSpriteNode(imageNamed: "coin")
         coin.setScale(0.4)
         coin.position = self.convertPoint(CGPointMake(Float.range(coin_origin_x, max: coin_origin_x + 100), floor_distance + Float.range(50, max: screenSize.height - coin.size.height)), toNode: background)
@@ -189,6 +193,57 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         coin.runAction(self.spinAnimation())
         
         background.addChild(coin)
+    }
+    
+    func initBonusCoins() {
+        let screenSize: CGRect = UIScreen.mainScreen().bounds
+        
+        var bonusCoinY = floor_distance + 100
+        
+        for var i: Int = 0; i < bonusCoinCount; i++ {
+            var coin:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
+            coin = SKSpriteNode(imageNamed: "coin")
+            coin.setScale(0.4)
+            
+            bonusCoinY = self.getNextYPosition(bonusCoinY)
+            
+            coin.position = self.convertPoint(CGPointMake(coin_origin_x + coin.frame.width * CGFloat(i), bonusCoinY), toNode: background)
+            
+            coin.physicsBody = SKPhysicsBody(circleOfRadius: coin.size.width / 2.5)
+            coin.physicsBody?.categoryBitMask = FSCoinCategory
+            coin.physicsBody?.contactTestBitMask = FSPlayerCategory
+            coin.physicsBody?.collisionBitMask = 0
+            coin.physicsBody?.dynamic = false
+            coin.zPosition = 10
+            
+            coin.runAction(self.spinAnimation())
+            
+            background.addChild(coin)
+        }
+    }
+    
+    func getNextYPosition(posY: CGFloat) -> CGFloat {
+        let screenSize: CGRect = UIScreen.mainScreen().bounds
+        
+        var isGoingUp = Int(arc4random_uniform(2))
+        
+        if posY + coinheight > screenSize.height {
+            isGoingUp = 0
+        }
+        
+        if posY - coinheight <= floor_distance {
+            isGoingUp = 1
+        }
+    
+        var newPosY:CGFloat = 0
+        
+        if isGoingUp == 1 {
+            newPosY = posY + coinheight
+        } else {
+            newPosY = posY - coinheight
+        }
+    
+        return newPosY
     }
     
     func initWeeds() {
@@ -215,7 +270,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         var whale:SKSpriteNode = SKSpriteNode(color: UIColor.redColor(), size: CGSizeMake(10, 30))
         whale = SKSpriteNode(imageNamed: "whale")
         whale.setScale(0.5)
-        whale.position = self.convertPoint(CGPointMake(Float.range(whale_origin_x, max: whale_origin_x + 500), floor_distance + 220), toNode: background)
+        whale.position = self.convertPoint(CGPointMake(Float.range(whale_origin_x, max: whale_origin_x + 500), Float.range(floor_distance, max: floor_distance + 220)), toNode: background)
         
         whale.physicsBody = SKPhysicsBody(rectangleOfSize: whale.size)
         whale.physicsBody?.categoryBitMask = FSWhaleCategory
@@ -223,6 +278,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         whale.physicsBody?.collisionBitMask = FSPlayerCategory
         whale.physicsBody?.dynamic = false
         whale.zPosition = 21
+        
+        whale.runAction(self.rotateMiniAnimation())
         
         background.addChild(whale)
     }
@@ -247,7 +304,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if collision == (FSPlayerCategory | FSCoinCategory) {
             score++
             label_score.text = "\(score)"
+            backround_speed = backround_speed + (Float(score) * 0.005)
             
+            if contact.bodyB.node == fish {
+                contact.bodyA.node?.removeFromParent()
+                return
+            }
             contact.bodyB.node?.removeFromParent()
         }
         
@@ -281,6 +343,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.removeActionForKey("weedsGenerator")
         self.removeActionForKey("coinGenerator")
         self.removeActionForKey("whaleGenerator")
+        self.removeActionForKey("bonusCoinGenerator")
         
         let topScore : Int = self.getTopScore()
         label_highScore.text = "Top Score : " + (topScore as NSNumber).stringValue
@@ -292,7 +355,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.initFish()
         self.initBackground()
     }
-    
     
     func moveBackground() {
         let posX: Float = -backround_speed * Float(delta)
@@ -307,12 +369,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
-    func ballPositionCheck() {
-        if (fish.position.y < 51) {
-            touchCount = 0
-        }
-    }
-    
     func spinAnimation() -> SKAction {
         let spinIn = SKAction.scaleXTo(0.5, duration: 0.5)
         let spinOut = SKAction.scaleXTo(0.0, duration: 0.5)
@@ -320,6 +376,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let spin = SKAction.repeatActionForever(sequence)
         
         return spin
+    }
+    
+    func rotateMiniAnimation() -> SKAction {
+        let rotR = SKAction.rotateByAngle(0.15, duration: 0.2)
+        let rotL = SKAction.rotateByAngle(-0.15, duration: 0.2)
+        let sequence = SKAction.sequence([rotR, rotL, rotL, rotR])
+        let wiggle = SKAction.repeatActionForever(sequence)
+        
+        return wiggle
     }
     
     override func touchesBegan(touches: NSSet, withEvent event: UIEvent) {
@@ -335,6 +400,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(5.0), SKAction.runBlock { self.initWeeds()}])), withKey: "weedsGenerator")
             
             self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(3.0), SKAction.runBlock { self.initCoins()}])), withKey: "coinGenerator")
+            
+            self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(20.0), SKAction.runBlock { self.initBonusCoins()}])), withKey: "bonusCoinGenerator")
             
             self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(10.0), SKAction.runBlock { self.initWhale()}])), withKey: "whaleGenerator")
         }
@@ -357,14 +424,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         last_update_time = currentTime
         
-        backround_speed = backround_speed + (Float(score) * 0.01)
-        
         if state != .FSGameStateEnded {
             self.moveBackground()
-            self.ballPositionCheck()
             
             if isTouching {
-                fish.physicsBody?.applyImpulse(CGVectorMake(0, 2))
+                fish.physicsBody?.applyImpulse(CGVectorMake(0, 1))
             }
           
             let velocity_x = fish.physicsBody?.velocity.dx
