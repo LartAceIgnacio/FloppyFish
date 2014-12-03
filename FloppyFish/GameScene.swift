@@ -22,6 +22,7 @@ var last_update_time:NSTimeInterval = NSTimeInterval(0)
 // Score
 var score:Int = 0
 var label_score:SKLabelNode = SKLabelNode()
+var label_highScore:SKLabelNode = SKLabelNode()
 
 // Floor height
 let floor_distance:CGFloat = 30.0
@@ -88,6 +89,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.initFish()
         self.initBackground()
         self.initScoreLabel()
+        self.initHighScoreLabel()
         self.initInstructions()
     }
     
@@ -102,7 +104,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         fish.physicsBody?.collisionBitMask = FSWeedsCategory | FSBoundaryCategory | FSWhaleCategory
         fish.physicsBody?.restitution = 0.0
         fish.physicsBody?.allowsRotation = false
-        fish.zPosition = 20
+        fish.zPosition = 100
         
         self.addChild(fish)
     }
@@ -123,8 +125,43 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         label_score.text = "0"
         label_score.fontColor = UIColor .blackColor()
         label_score.zPosition = 50
-        self.addChild(label_score)
         
+        self.addChild(label_score)
+    }
+    
+    func initHighScoreLabel() {
+        let topScore : Int = self.getTopScore()
+        
+        label_highScore = SKLabelNode(fontNamed: "MarketFelt-Wide")
+        
+        label_highScore.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMaxY(self.frame) - 30)
+        label_highScore.text = "Top Score : " + (topScore as NSNumber).stringValue
+        label_highScore.fontColor = UIColor .whiteColor()
+        label_highScore.fontSize = 10
+        label_highScore.zPosition = 50
+        
+        self.addChild(label_highScore)
+    }
+    
+    func getTopScore() -> Int {
+        var userDefaults = NSUserDefaults.standardUserDefaults()
+        
+        var topScore = userDefaults.objectForKey("highScore") as? Int
+        
+        if topScore == nil {
+            topScore = 0
+        }
+        
+        return topScore!
+    }
+    
+    func setTopScore(newScore: Int) {
+        var topScore = self.getTopScore()
+        
+        if (newScore > topScore) {
+            NSUserDefaults.standardUserDefaults().setObject(newScore, forKey: "highScore")
+            NSUserDefaults.standardUserDefaults().synchronize()
+        }
     }
     
     func initInstructions() {
@@ -160,7 +197,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         var weeds:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
         weeds = SKSpriteNode(imageNamed: "weeds")
         weeds.setScale(0.5)
-        weeds.position = self.convertPoint(CGPointMake(Float.range(weeds_origin_x, max: weeds_origin_x + 500), floor_distance + 50), toNode: background)
+        weeds.position = self.convertPoint(CGPointMake(Float.range(weeds_origin_x, max: weeds_origin_x + 500), floor_distance), toNode: background)
         
         weeds.physicsBody = SKPhysicsBody(rectangleOfSize: weeds.size)
         weeds.physicsBody?.categoryBitMask = FSWeedsCategory
@@ -229,6 +266,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         fish.physicsBody?.collisionBitMask = FSBoundaryCategory
         fish.yScale = fish.yScale * -1
         
+        self.setTopScore(score)
+        
         var timer = NSTimer.scheduledTimerWithTimeInterval(4.0, target: self, selector: Selector("restartGame"), userInfo: nil, repeats: false)
     }
     
@@ -242,6 +281,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.removeActionForKey("weedsGenerator")
         self.removeActionForKey("coinGenerator")
         self.removeActionForKey("whaleGenerator")
+        
+        let topScore : Int = self.getTopScore()
+        label_highScore.text = "Top Score : " + (topScore as NSNumber).stringValue
         
         score = 0
         label_score.text = "0"
@@ -322,7 +364,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.ballPositionCheck()
             
             if isTouching {
-                fish.physicsBody?.applyImpulse(CGVectorMake(0, 1))
+                fish.physicsBody?.applyImpulse(CGVectorMake(0, 2))
             }
           
             let velocity_x = fish.physicsBody?.velocity.dx
