@@ -53,6 +53,7 @@ let coin_origin_x:CGFloat                         = 600.0
 
 // Instructions
 var instructions:SKSpriteNode                     = SKSpriteNode()
+var instructionLabel                              = SKLabelNode()
 
 // Physics Categories
 let FSBoundaryCategory:UInt32                     = 1 //<< 0
@@ -75,12 +76,13 @@ let coinheight:CGFloat                            = 30
 let coinWidth:CGFloat                             = 10
 let bonusCoinCount                                = 8
 
-// GameOver Message
+// Message
 let boatGameOverMessage                           = "You've been caught by the fisher man!"
 let crabGameOverMessage                           = "You've been sipit by a crab!"
 let whaleGameOverMessage                          = "You've been bump into a whale!"
 let sharkGameOverMessage                          = "You've been hit and run by a shark!"
 let defaultGameOverMessage                        = "Game Over!"
+let tapToStartMessage                             = "Tap to Start"
 
 // Generators key
 let crabGenerator                                 = "crabsGenerator"
@@ -100,6 +102,21 @@ let sharkGeneratorWaitDuration                    = 15.0
 let bubbleGeneratorWaitDuration                   = 7.0
 let boatGeneratorWaitDuration                     = 5.0
 
+// zPosition
+
+let fishZPosition:CGFloat                         = 100.0
+let scoreLabelZPostion:CGFloat                    = 99.0
+let highScoreLabelZPosition:CGFloat               = 98.0
+let instructionLabelZPosition:CGFloat             = 97.0
+let instructionImageZPostion:CGFloat              = 96.0
+let whaleZPosition:CGFloat                        = 95.0
+let sharkZPosition:CGFloat                        = 94.0
+let coinZposition:CGFloat                         = 93.0
+let crabZPosition:CGFloat                         = 92.0
+let boatZPosition:CGFloat                         = 91.0
+let bubbleZPosition:CGFloat                       = 2.0
+let bgZPosition:CGFloat                           = 1.0
+
 // Image Name
 let fishImage                                     = "fish"
 let boatImage                                     = "boat"
@@ -118,13 +135,13 @@ let gameOverFontName                              = "Chalkduster"
 // NSUserDefaultsKey
 let userDefaultsHighScoreKey                      = "highScore"
 
-// Name
+// Node Name
 let bgName                                        = "bg"
 
 // Fish 
 var fishImpulse                                   = CGVectorMake(0, screenSize.height * 0.005)
 
-// #pragma mark - Math functions
+// MARK: - Math functions
 extension Float {
     static func clamp(min: CGFloat, max: CGFloat, value: CGFloat) -> CGFloat {
         if(value > max) {
@@ -174,7 +191,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         fish.physicsBody?.collisionBitMask = FSCrabCategory | FSBoundaryCategory | FSWhaleCategory | FSSharkCategory
         fish.physicsBody?.restitution = 0.0
         fish.physicsBody?.allowsRotation = false
-        fish.zPosition = 100
+        fish.zPosition = fishZPosition
+        
         
         self.addChild(fish)
     }
@@ -184,13 +202,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         coin = SKSpriteNode(imageNamed: coinImage)
         coin.position = self.convertPoint(CGPointMake(Float.range(coin_origin_x, max: coin_origin_x + 100), floor_distance + Float.range(50, max: screenSize.height - coin.size.height)), toNode: background)
         
-//        coin.physicsBody = SKPhysicsBody(circleOfRadius: coin.size.width / 2.5)
         coin.physicsBody = SKPhysicsBody(texture: coin.texture, size: coin.size)
         coin.physicsBody?.categoryBitMask = FSCoinCategory
         coin.physicsBody?.contactTestBitMask = FSPlayerCategory
         coin.physicsBody?.collisionBitMask = 0
         coin.physicsBody?.dynamic = false
-        coin.zPosition = 10
+        coin.zPosition = coinZposition
         
         coin.runAction(self.spinAnimation())
         
@@ -213,7 +230,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             coin.physicsBody?.contactTestBitMask = FSPlayerCategory
             coin.physicsBody?.collisionBitMask = 0
             coin.physicsBody?.dynamic = false
-            coin.zPosition = 10
+            coin.zPosition = coinZposition
             
             coin.runAction(self.spinAnimation())
             
@@ -231,7 +248,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         crab.physicsBody?.contactTestBitMask = FSPlayerCategory
         crab.physicsBody?.collisionBitMask = FSPlayerCategory
         crab.physicsBody?.dynamic = false
-        crab.zPosition = 20
+        crab.zPosition = crabZPosition
         
         crab.runAction(self.crabAnimation(crab.position))
         
@@ -249,9 +266,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         whale.physicsBody?.contactTestBitMask = FSPlayerCategory
         whale.physicsBody?.collisionBitMask = FSPlayerCategory
         whale.physicsBody?.dynamic = false
-        whale.zPosition = 21
+        whale.zPosition = whaleZPosition
         
-        whale.runAction(self.whaleSwimAnimation())
+        whale.runAction(self.whaleWiggleAnimation())
+        whale.runAction(self.whaleSwimAnimation(whale.position))
         
         background.addChild(whale)
     }
@@ -259,7 +277,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func initShark() {
         var shark:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
         shark = SKSpriteNode(imageNamed: sharkImage)
-        shark.position = self.convertPoint(CGPointMake(Float.range(whale_origin_x, max: whale_origin_x + 500), Float.range(floor_distance, max: floor_distance + 220)), toNode: background)
+        shark.position = self.convertPoint(CGPointMake(Float.range(whale_origin_x, max: whale_origin_x + 500), Float.range(floor_distance, max: floor_distance + 320)), toNode: background)
         
         shark.physicsBody = SKPhysicsBody(texture: shark.texture, size: shark.size)
         
@@ -267,7 +285,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         shark.physicsBody?.contactTestBitMask = FSPlayerCategory
         shark.physicsBody?.collisionBitMask = FSPlayerCategory
         shark.physicsBody?.dynamic = false
-        shark.zPosition = 21
+        shark.zPosition = sharkZPosition
         
         shark.runAction(self.moveToTheLeftAnimation(shark.position))
         
@@ -286,9 +304,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         boat.physicsBody?.contactTestBitMask = FSPlayerCategory
         boat.physicsBody?.collisionBitMask = FSPlayerCategory
         boat.physicsBody?.dynamic = false
-        boat.zPosition = 20
+        boat.zPosition = boatZPosition
         
         background.addChild(boat)
+    }
+    
+    func initBubble() {
+        var bubble:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(5, 50))
+        bubble = SKSpriteNode(imageNamed: bubbleImage)
+        bubble.position = self.convertPoint(CGPointMake(700, floor_distance), toNode: background)
+        
+        bubble.zPosition = bubbleZPosition
+        
+        bubble.runAction(self.bubbleAnumation())
+        
+        background.addChild(bubble)
     }
     
     func initWorld() {
@@ -306,7 +336,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         label_score.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMaxY(self.frame) - 100)
         label_score.text = "0"
         label_score.fontColor = UIColor .blackColor()
-        label_score.zPosition = 50
+        label_score.zPosition = scoreLabelZPostion
         
         self.addChild(label_score)
     }
@@ -320,7 +350,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         label_highScore.text = "Top Score : " + (topScore as NSNumber).stringValue
         label_highScore.fontColor = UIColor .whiteColor()
         label_highScore.fontSize = 10
-        label_highScore.zPosition = 50
+        label_highScore.zPosition = highScoreLabelZPosition
         
         self.addChild(label_highScore)
     }
@@ -328,8 +358,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func initInstructions() {
         instructions = SKSpriteNode(imageNamed: startImage)
         instructions.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame) - 10)
-        instructions.zPosition = 50
+        instructions.zPosition = instructionImageZPostion
+        
+        instructionLabel = SKLabelNode(fontNamed: fontName)
+        instructionLabel.text = tapToStartMessage
+        instructionLabel.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame) - 10)
+        instructionLabel.fontSize = 20
+        instructionLabel.fontColor = UIColor.whiteColor()
+        instructionLabel.zPosition = instructionLabelZPosition
+        
+        self.addChild(instructionLabel)
         self.addChild(instructions)
+        
+        
     }
     
     func initBackground() {
@@ -341,21 +382,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             tile.anchorPoint = CGPointZero
             tile.position = CGPointMake(CGFloat(i) * 710, 0)
             tile.name = bgName
-            tile.zPosition = 10
+            tile.zPosition = bgZPosition
             background.addChild(tile)
         }
-    }
-    
-    func initBubble() {
-        var bubble:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(5, 50))
-        bubble = SKSpriteNode(imageNamed: bubbleImage)
-        bubble.position = self.convertPoint(CGPointMake(700, floor_distance), toNode: background)
-        
-        bubble.zPosition = 30
-        
-        bubble.runAction(self.goingUpAnumation())
-        
-        background.addChild(bubble)
     }
     
     func initGameOver(message: NSString) {
@@ -412,13 +441,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return newPosY
     }
     
+    func moveBackground() {
+        let posX: CGFloat = -backround_speed * CGFloat(delta)
+        background.position = CGPointMake(background.position.x + CGFloat(posX), 0)
+        
+        background.enumerateChildNodesWithName(bgName) { (node, stop) in
+            let backround_screen_position: CGPoint = background.convertPoint(node.position, toNode: self)
+            
+            if backround_screen_position.x <= -node.frame.size.width {
+                node.position = CGPointMake(node.position.x + (node.frame.size.width * 2.0), node.position.y)
+            }
+        }
+    }
+    
+// MARK: - GameOver Methods
     func getGameOverMessage(collisionType: UInt32) -> NSString {
         
         switch collisionType {
             
         case FSBoatCategory:
             return boatGameOverMessage
-
+            
         case FSCrabCategory:
             return crabGameOverMessage
             
@@ -449,6 +492,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         var timer = NSTimer.scheduledTimerWithTimeInterval(4.0, target: self, selector: Selector("restartGame"), userInfo: nil, repeats: false)
     }
     
+// MARK: - RestartMethods
     func restartGame() {
         state = .FSGameStateStarting
         fish.removeFromParent()
@@ -456,6 +500,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         background.removeFromParent()
         
         instructions.hidden = false
+        instructionLabel.hidden = false
+        
         self.removeActionForKey(crabGenerator)
         self.removeActionForKey(coinGenerator)
         self.removeActionForKey(whaleGenerator)
@@ -474,19 +520,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         self.initFish()
         self.initBackground()
-    }
-    
-    func moveBackground() {
-        let posX: CGFloat = -backround_speed * CGFloat(delta)
-        background.position = CGPointMake(background.position.x + CGFloat(posX), 0)
-        
-        background.enumerateChildNodesWithName(bgName) { (node, stop) in
-            let backround_screen_position: CGPoint = background.convertPoint(node.position, toNode: self)
-            
-            if backround_screen_position.x <= -node.frame.size.width {
-                node.position = CGPointMake(node.position.x + (node.frame.size.width * 2.0), node.position.y)
-            }
-        }
     }
     
 // MARK: - Collision Functions
@@ -541,7 +574,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return spin
     }
     
-    func whaleSwimAnimation() -> SKAction {
+    func whaleWiggleAnimation() -> SKAction {
         let rotR = SKAction.rotateByAngle(0.15, duration: 0.2)
         let rotL = SKAction.rotateByAngle(-0.15, duration: 0.2)
         let sequence = SKAction.sequence([rotR, rotL, rotL, rotR])
@@ -550,7 +583,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return wiggle
     }
     
-    func goingUpAnumation() -> SKAction {
+    func whaleSwimAnimation(position:CGPoint) -> SKAction {
+        let goingLeft = SKAction.moveToX(position.x - 1000, duration: 20.0)
+        
+        return goingLeft
+    }
+    
+    func bubbleAnumation() -> SKAction {
         let goingUp = SKAction .moveToY(CGRectGetMaxY(screenSize), duration: 10.0)
         
         return goingUp
@@ -589,6 +628,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             state = .FSGameStatePlaying
             
             instructions.hidden = true
+            instructionLabel.hidden = true
             
             fish.physicsBody?.affectedByGravity = true
             fish.physicsBody?.applyImpulse(CGVectorMake(0, 25))
