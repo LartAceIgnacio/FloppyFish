@@ -8,56 +8,6 @@
 
 import SpriteKit
 
-// Fish
-var fish:SKSpriteNode = SKSpriteNode()
-
-// Background
-let background:SKNode = SKNode()
-let defaultBackgroundSpeed: CGFloat = 100.0
-let defaultBackgroundSpeedIncrementValue: CGFloat = 3.0
-var backround_speed: CGFloat = defaultBackgroundSpeed
-
-// Time Values
-var delta:NSTimeInterval = NSTimeInterval(0)
-var last_update_time:NSTimeInterval = NSTimeInterval(0)
-
-// Score
-var score:Int = 0
-var label_score:SKLabelNode = SKLabelNode()
-var label_highScore:SKLabelNode = SKLabelNode()
-
-// GameOver
-var gameOverLabel = SKLabelNode()
-
-// Floor height
-let floor_distance:CGFloat = 30.0
-
-// Crabs Origin
-let crab_origin_x:CGFloat = 682.0
-
-// Whale Origin
-let whale_origin_x:CGFloat = 600.0
-
-// Ring Origin
-let coin_origin_x:CGFloat = 600.0
-
-// Instructions
-var instructions:SKSpriteNode = SKSpriteNode()
-
-// Physics Categories
-let FSBoundaryCategory:UInt32 = 1 << 0
-let FSPlayerCategory:UInt32   = 1 << 1
-let FSCrabCategory:UInt32     = 1 << 2
-let FSWhaleCategory:UInt32    = 1 << 3
-let FSCoinCategory:UInt32     = 1 << 4
-let FSBoatCategory:UInt32     = 1 << 5
-
-// Touch Count
-var touchCount: Int = 0
-var isTouching: Bool = false
-
-let screenSize: CGRect = UIScreen.mainScreen().bounds
-
 // Game States
 enum FSGameState: Int {
     case FSGameStateStarting
@@ -65,56 +15,109 @@ enum FSGameState: Int {
     case FSGameStateEnded
 }
 
-var state:FSGameState = .FSGameStateStarting
+// Fish
+var fish:SKSpriteNode                             = SKSpriteNode()
 
-let coinheight:CGFloat = 30
-let coinWidth:CGFloat = 10
-let bonusCoinCount = 8
+// Background
+let background:SKNode                             = SKNode()
+let defaultBackgroundSpeed: CGFloat               = 100.0
+let defaultBackgroundSpeedIncrementValue: CGFloat = 3.0
+var backround_speed: CGFloat                      = defaultBackgroundSpeed
+
+// Time Values
+var delta:NSTimeInterval                          = NSTimeInterval(0)
+var last_update_time:NSTimeInterval               = NSTimeInterval(0)
+
+// Score
+var score:Int                                     = 0
+var label_score:SKLabelNode                       = SKLabelNode()
+var label_highScore:SKLabelNode                   = SKLabelNode()
+
+// GameOver
+var gameOverLabel                                 = SKLabelNode()
+
+// Floor height
+let floor_distance:CGFloat                        = 30.0
+
+// Crabs Origin
+let crab_origin_x:CGFloat                         = 682.0
+
+// Whale Origin
+let whale_origin_x:CGFloat                        = 600.0
+
+// Boat Origin
+let boat_origin_x:CGFloat                         = 625.0
+
+// Ring Origin
+let coin_origin_x:CGFloat                         = 600.0
+
+// Instructions
+var instructions:SKSpriteNode                     = SKSpriteNode()
+
+// Physics Categories
+let FSBoundaryCategory:UInt32                     = 1 << 0
+let FSPlayerCategory:UInt32                       = 1 << 1
+let FSCrabCategory:UInt32                         = 1 << 2
+let FSWhaleCategory:UInt32                        = 1 << 3
+let FSCoinCategory:UInt32                         = 1 << 4
+let FSBoatCategory:UInt32                         = 1 << 5
+
+// Touch Count
+var touchCount: Int                               = 0
+var isTouching: Bool                              = false
+
+let screenSize: CGRect                            = UIScreen.mainScreen().bounds
+
+var state:FSGameState                             = .FSGameStateStarting
+
+let coinheight:CGFloat                            = 30
+let coinWidth:CGFloat                             = 10
+let bonusCoinCount                                = 8
 
 // GameOver Message
-let boatGameOverMessage    = "You've been caught by the fisher man!"
-let crabGameOverMessage    = "You've been hit by a crab!"
-let whaleGameOverMessage   = "You've been hit and run by a whale!"
-let defaultGameOverMessage = "Game Over!"
+let boatGameOverMessage                           = "You've been caught by the fisher man!"
+let crabGameOverMessage                           = "You've been hit by a crab!"
+let whaleGameOverMessage                          = "You've been hit and run by a whale!"
+let defaultGameOverMessage                        = "Game Over!"
 
 // Generators key
-let crabGenerator      = "crabsGenerator"
-let coinGenerator      = "coinsGenerator"
-let bonusCoinGenerator = "bonusCoinsGenerator"
-let whaleGenerator     = "whalesGenerator"
-let bubbleGenerator    = "bubblesGenerator"
-let boatGenerator      = "boatsGenerator"
+let crabGenerator                                 = "crabsGenerator"
+let coinGenerator                                 = "coinsGenerator"
+let bonusCoinGenerator                            = "bonusCoinsGenerator"
+let whaleGenerator                                = "whalesGenerator"
+let bubbleGenerator                               = "bubblesGenerator"
+let boatGenerator                                 = "boatsGenerator"
 
 // Waiting Duration
-let crabGeneratorWaitDuration   = 5.0
-let coinGeneratorWaitDuration   = 3.0
-let bonusGeneratorWaitDuration  = 20.0
-let whaleGeneratorWaitDuration  = 10.0
-let bubbleGeneratorWaitDuration = 7.0
-let boatGeneratorWaitDuration   = 5.0
+let crabGeneratorWaitDuration                     = 5.0
+let coinGeneratorWaitDuration                     = 3.0
+let bonusGeneratorWaitDuration                    = 20.0
+let whaleGeneratorWaitDuration                    = 10.0
+let bubbleGeneratorWaitDuration                   = 7.0
+let boatGeneratorWaitDuration                     = 5.0
 
 // Image Name
-let fishImage = "fish"
-let boatImage = "boat"
-let crabImage = "crab"
-let bubbleImage = "bubble"
-let bgImage = "bg.jpg"
-let whaleImage = "whale"
-let coinImage = "coin"
-let startImage = "start_image"
+let fishImage                                     = "fish"
+let boatImage                                     = "boat"
+let crabImage                                     = "crab"
+let bubbleImage                                   = "bubble"
+let bgImage                                       = "bg.jpg"
+let whaleImage                                    = "whale"
+let coinImage                                     = "coin"
+let startImage                                    = "start_image"
 
 // Font name
-let fontName = "MarkerFelt-Wide"
-let gameOverFontName = "Chalkduster"
+let fontName                                      = "MarkerFelt-Wide"
+let gameOverFontName                              = "Chalkduster"
 
 // NSUserDefaultsKey
-let userDefaultsHighScoreKey = "highScore"
+let userDefaultsHighScoreKey                      = "highScore"
 
 // Name
-let bgName = "bg"
+let bgName                                        = "bg"
 
 // Fish 
-var fishImpulse = CGVectorMake(0, screenSize.height * 0.6)
+var fishImpulse                                   = CGVectorMake(0, screenSize.height * 0.6)
 
 // #pragma mark - Math functions
 extension Float {
@@ -159,9 +162,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         fish = SKSpriteNode(imageNamed: fishImage)
         fish.position = CGPointMake(100, CGRectGetMidY(self.frame))
         
-//        fish.physicsBody = SKPhysicsBody(circleOfRadius: fish.size.width / 2.5)
         fish.physicsBody = SKPhysicsBody(texture: fish.texture, size: fish.size)
         fish.setScale(0.1)
+        
         fish.physicsBody?.categoryBitMask = FSPlayerCategory
         fish.physicsBody?.contactTestBitMask = FSCrabCategory | FSCoinCategory | FSBoundaryCategory | FSWhaleCategory
         fish.physicsBody?.collisionBitMask = FSCrabCategory | FSBoundaryCategory | FSWhaleCategory
@@ -218,7 +221,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         coin = SKSpriteNode(imageNamed: coinImage)
         coin.position = self.convertPoint(CGPointMake(Float.range(coin_origin_x, max: coin_origin_x + 100), floor_distance + Float.range(50, max: screenSize.height - coin.size.height)), toNode: background)
         
-//        coin.physicsBody = SKPhysicsBody(circleOfRadius: coin.size.width / 2.5)
         coin.physicsBody = SKPhysicsBody(texture: coin.texture, size: coin.size)
         coin.setScale(0.4)
         coin.physicsBody?.categoryBitMask = FSCoinCategory
@@ -262,7 +264,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         crab = SKSpriteNode(imageNamed: crabImage)
         crab.position = self.convertPoint(CGPointMake(Float.range(crab_origin_x, max: crab_origin_x + 500), floor_distance + 20), toNode: background)
         
-//        crab.physicsBody = SKPhysicsBody(circleOfRadius: crab.size.width / 2.5)
         crab.physicsBody = SKPhysicsBody(texture: crab.texture, size: crab.size)
         crab.setScale(0.2)
         crab.physicsBody?.categoryBitMask = FSCrabCategory
@@ -281,9 +282,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         whale = SKSpriteNode(imageNamed: whaleImage)
         whale.position = self.convertPoint(CGPointMake(Float.range(whale_origin_x, max: whale_origin_x + 500), Float.range(floor_distance, max: floor_distance + 220)), toNode: background)
         
-//        whale.physicsBody = SKPhysicsBody(circleOfRadius: whale.size.width / 2.5)
         whale.physicsBody = SKPhysicsBody(texture: whale.texture, size: whale.size)
         whale.setScale(0.5)
+        
         whale.physicsBody?.categoryBitMask = FSWhaleCategory
         whale.physicsBody?.contactTestBitMask = FSPlayerCategory
         whale.physicsBody?.collisionBitMask = FSPlayerCategory
@@ -299,11 +300,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func initBoat() {
         var boat:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(20, 20))
         boat = SKSpriteNode(imageNamed: boatImage)
-        boat.position = self.convertPoint(CGPointMake(Float.range(whale_origin_x, max: whale_origin_x + 500), CGRectGetMaxY(screenSize) + boat.size.height / 3), toNode: background)
+        boat.position = self.convertPoint(CGPointMake(Float.range(boat_origin_x, max: boat_origin_x + 500), CGRectGetMaxY(screenSize) + boat.size.height / 3), toNode: background)
         
-//        boat.physicsBody = SKPhysicsBody(rectangleOfSize: boat.size)
         boat.physicsBody = SKPhysicsBody(texture: boat.texture, size: boat.size)
         boat.setScale(1.0)
+        
         boat.physicsBody?.categoryBitMask = FSBoatCategory
         boat.physicsBody?.contactTestBitMask = FSPlayerCategory
         boat.physicsBody?.collisionBitMask = FSPlayerCategory
@@ -470,25 +471,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let collision:UInt32 = (contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask)
         
         if collision == (FSPlayerCategory | FSCoinCategory) {
+            score++
+            label_score.text = "\(score)"
             backround_speed = backround_speed + defaultBackgroundSpeedIncrementValue
             
             if contact.bodyB.node == fish {
                 
-                contact.bodyA.node?.physicsBody?.categoryBitMask = 0
-                contact.bodyA.node?.physicsBody?.affectedByGravity = true
+                var contactPoint = contact.bodyA.node?.position
                 
-//                contact.bodyA.node?.removeFromParent()
+                contact.bodyA.node?.physicsBody?.categoryBitMask = 0
+                contact.bodyA.node?.runAction(self.getCoinAnimation(contactPoint!))
+                
                 return
             }
             
-            var contactPoint = contact.bodyA.node?.position
+            var contactPoint = contact.bodyB.node?.position
             
             contact.bodyB.node?.physicsBody?.categoryBitMask = 0
             contact.bodyB.node?.runAction(self.getCoinAnimation(contactPoint!))
-//            contact.bodyB.node?.removeFromParent()
-            
-            score++
-            label_score.text = "\(score)"
         }
         
         if collision == (FSPlayerCategory | FSCrabCategory) {
