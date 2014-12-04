@@ -55,12 +55,13 @@ let coin_origin_x:CGFloat                         = 600.0
 var instructions:SKSpriteNode                     = SKSpriteNode()
 
 // Physics Categories
-let FSBoundaryCategory:UInt32                     = 1 << 0
-let FSPlayerCategory:UInt32                       = 1 << 1
-let FSCrabCategory:UInt32                         = 1 << 2
-let FSWhaleCategory:UInt32                        = 1 << 3
-let FSCoinCategory:UInt32                         = 1 << 4
-let FSBoatCategory:UInt32                         = 1 << 5
+let FSBoundaryCategory:UInt32                     = 1 //<< 0
+let FSPlayerCategory:UInt32                       = 2 //<< 1
+let FSCrabCategory:UInt32                         = 4 //<< 2
+let FSWhaleCategory:UInt32                        = 8 //<< 3
+let FSCoinCategory:UInt32                         = 16 //<< 4
+let FSBoatCategory:UInt32                         = 32 //<< 5
+let FSSharkCategory:UInt32                        = 64 //<< 6
 
 // Touch Count
 var touchCount: Int                               = 0
@@ -76,8 +77,9 @@ let bonusCoinCount                                = 8
 
 // GameOver Message
 let boatGameOverMessage                           = "You've been caught by the fisher man!"
-let crabGameOverMessage                           = "You've been hit by a crab!"
-let whaleGameOverMessage                          = "You've been hit and run by a whale!"
+let crabGameOverMessage                           = "You've been sipit by a crab!"
+let whaleGameOverMessage                          = "You've been bump into a whale!"
+let sharkGameOverMessage                          = "You've been hit and run by a shark!"
 let defaultGameOverMessage                        = "Game Over!"
 
 // Generators key
@@ -85,6 +87,7 @@ let crabGenerator                                 = "crabsGenerator"
 let coinGenerator                                 = "coinsGenerator"
 let bonusCoinGenerator                            = "bonusCoinsGenerator"
 let whaleGenerator                                = "whalesGenerator"
+let sharkGenerator                                = "sharksGenerator"
 let bubbleGenerator                               = "bubblesGenerator"
 let boatGenerator                                 = "boatsGenerator"
 
@@ -93,6 +96,7 @@ let crabGeneratorWaitDuration                     = 5.0
 let coinGeneratorWaitDuration                     = 3.0
 let bonusGeneratorWaitDuration                    = 20.0
 let whaleGeneratorWaitDuration                    = 10.0
+let sharkGeneratorWaitDuration                    = 15.0
 let bubbleGeneratorWaitDuration                   = 7.0
 let boatGeneratorWaitDuration                     = 5.0
 
@@ -105,6 +109,7 @@ let bgImage                                       = "bg.jpg"
 let whaleImage                                    = "whale"
 let coinImage                                     = "coin"
 let startImage                                    = "start_image"
+let sharkImage                                    = "shark"
 
 // Font name
 let fontName                                      = "MarkerFelt-Wide"
@@ -165,8 +170,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         fish.physicsBody = SKPhysicsBody(texture: fish.texture, size: fish.size)
         
         fish.physicsBody?.categoryBitMask = FSPlayerCategory
-        fish.physicsBody?.contactTestBitMask = FSCrabCategory | FSCoinCategory | FSBoundaryCategory | FSWhaleCategory
-        fish.physicsBody?.collisionBitMask = FSCrabCategory | FSBoundaryCategory | FSWhaleCategory
+        fish.physicsBody?.contactTestBitMask = FSCrabCategory | FSCoinCategory | FSBoundaryCategory | FSWhaleCategory | FSSharkCategory
+        fish.physicsBody?.collisionBitMask = FSCrabCategory | FSBoundaryCategory | FSWhaleCategory | FSSharkCategory
         fish.physicsBody?.restitution = 0.0
         fish.physicsBody?.allowsRotation = false
         fish.zPosition = 100
@@ -247,10 +252,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         whale.zPosition = 21
         
         whale.runAction(self.whaleSwimAnimation())
-        whale.runAction(self.moveToTheLeftAnimation())
         
         background.addChild(whale)
     }
+    
+    func initShark() {
+        var shark:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
+        shark = SKSpriteNode(imageNamed: sharkImage)
+        shark.position = self.convertPoint(CGPointMake(Float.range(whale_origin_x, max: whale_origin_x + 500), Float.range(floor_distance, max: floor_distance + 220)), toNode: background)
+        
+        shark.physicsBody = SKPhysicsBody(texture: shark.texture, size: shark.size)
+        
+        shark.physicsBody?.categoryBitMask = FSSharkCategory
+        shark.physicsBody?.contactTestBitMask = FSPlayerCategory
+        shark.physicsBody?.collisionBitMask = FSPlayerCategory
+        shark.physicsBody?.dynamic = false
+        shark.zPosition = 21
+        
+        shark.runAction(self.moveToTheLeftAnimation(shark.position))
+        
+        background.addChild(shark)
+    }
+
     
     func initBoat() {
         var boat:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(20, 20))
@@ -326,7 +349,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func initBubble() {
         var bubble:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(5, 50))
         bubble = SKSpriteNode(imageNamed: bubbleImage)
-//        bubble.setScale(0.5)
         bubble.position = self.convertPoint(CGPointMake(700, floor_distance), toNode: background)
         
         bubble.zPosition = 30
@@ -403,6 +425,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         case FSWhaleCategory:
             return whaleGameOverMessage
             
+        case FSSharkCategory:
+            return sharkGameOverMessage
+            
+            
         default:
             return defaultGameOverMessage
             
@@ -435,6 +461,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.removeActionForKey(whaleGenerator)
         self.removeActionForKey(bonusCoinGenerator)
         self.removeActionForKey(boatGenerator)
+        self.removeActionForKey(sharkGenerator)
+        
         gameOverLabel.removeFromParent()
         
         let topScore : Int = self.getTopScore()
@@ -497,6 +525,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if collision == (FSPlayerCategory | FSBoatCategory) {
             self.gameOver(FSBoatCategory)
         }
+        
+        if collision == (FSPlayerCategory | FSSharkCategory) {
+            self.gameOver(FSSharkCategory)
+        }
     }
     
 // MARK: - Animation Functions
@@ -524,8 +556,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return goingUp
     }
     
-    func moveToTheLeftAnimation() -> SKAction {
-        let goingLeft = SKAction.moveToX(CGRectGetMinX(screenSize), duration: 50.0)
+    func moveToTheLeftAnimation(position:CGPoint) -> SKAction {
+        let goingLeft = SKAction.moveToX(position.x - 1000, duration: 5.0)
         
         return goingLeft
     }
@@ -568,6 +600,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
               self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(bonusGeneratorWaitDuration), SKAction.runBlock { self.initBonusCoins()}])), withKey: bonusCoinGenerator)
             
               self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(whaleGeneratorWaitDuration), SKAction.runBlock { self.initWhale()}])), withKey: whaleGenerator)
+            
+            self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(sharkGeneratorWaitDuration), SKAction.runBlock { self.initShark()}])), withKey: sharkGenerator)
             
               self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(bubbleGeneratorWaitDuration), SKAction.runBlock { self.initBubble()}])), withKey: bubbleGenerator)
             
