@@ -117,7 +117,7 @@ let userDefaultsHighScoreKey                      = "highScore"
 let bgName                                        = "bg"
 
 // Fish 
-var fishImpulse                                   = CGVectorMake(0, screenSize.height * 0.6)
+var fishImpulse                                   = CGVectorMake(0, screenSize.height * 0.005)
 
 // #pragma mark - Math functions
 extension Float {
@@ -163,7 +163,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         fish.position = CGPointMake(100, CGRectGetMidY(self.frame))
         
         fish.physicsBody = SKPhysicsBody(texture: fish.texture, size: fish.size)
-        fish.setScale(0.1)
         
         fish.physicsBody?.categoryBitMask = FSPlayerCategory
         fish.physicsBody?.contactTestBitMask = FSCrabCategory | FSCoinCategory | FSBoundaryCategory | FSWhaleCategory
@@ -173,6 +172,100 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         fish.zPosition = 100
         
         self.addChild(fish)
+    }
+    
+    func initCoins() {
+        var coin:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(coinWidth, coinheight))
+        coin = SKSpriteNode(imageNamed: coinImage)
+        coin.position = self.convertPoint(CGPointMake(Float.range(coin_origin_x, max: coin_origin_x + 100), floor_distance + Float.range(50, max: screenSize.height - coin.size.height)), toNode: background)
+        
+//        coin.physicsBody = SKPhysicsBody(circleOfRadius: coin.size.width / 2.5)
+        coin.physicsBody = SKPhysicsBody(texture: coin.texture, size: coin.size)
+        coin.physicsBody?.categoryBitMask = FSCoinCategory
+        coin.physicsBody?.contactTestBitMask = FSPlayerCategory
+        coin.physicsBody?.collisionBitMask = 0
+        coin.physicsBody?.dynamic = false
+        coin.zPosition = 10
+        
+        coin.runAction(self.spinAnimation())
+        
+        background.addChild(coin)
+    }
+    
+    func initBonusCoins() {
+        var bonusCoinY = floor_distance + 100
+        
+        for var i: Int = 0; i < bonusCoinCount; i++ {
+            var coin:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
+            coin = SKSpriteNode(imageNamed: coinImage)
+            
+            bonusCoinY = self.getNextYPosition(bonusCoinY)
+            
+            coin.position = self.convertPoint(CGPointMake(coin_origin_x + coin.frame.width * CGFloat(i), bonusCoinY), toNode: background)
+            
+            coin.physicsBody = SKPhysicsBody(texture: coin.texture, size: coin.size)
+            coin.physicsBody?.categoryBitMask = FSCoinCategory
+            coin.physicsBody?.contactTestBitMask = FSPlayerCategory
+            coin.physicsBody?.collisionBitMask = 0
+            coin.physicsBody?.dynamic = false
+            coin.zPosition = 10
+            
+            coin.runAction(self.spinAnimation())
+            
+            background.addChild(coin)
+        }
+    }
+    
+    func initCrabs() {
+        var crab:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
+        crab = SKSpriteNode(imageNamed: crabImage)
+        crab.position = self.convertPoint(CGPointMake(Float.range(crab_origin_x, max: crab_origin_x + 500), floor_distance + 20), toNode: background)
+        
+        crab.physicsBody = SKPhysicsBody(texture: crab.texture, size: crab.size)
+        crab.physicsBody?.categoryBitMask = FSCrabCategory
+        crab.physicsBody?.contactTestBitMask = FSPlayerCategory
+        crab.physicsBody?.collisionBitMask = FSPlayerCategory
+        crab.physicsBody?.dynamic = false
+        crab.zPosition = 20
+        
+        crab.runAction(self.crabAnimation(crab.position))
+        
+        background.addChild(crab)
+    }
+    
+    func initWhale() {
+        var whale:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
+        whale = SKSpriteNode(imageNamed: whaleImage)
+        whale.position = self.convertPoint(CGPointMake(Float.range(whale_origin_x, max: whale_origin_x + 500), Float.range(floor_distance, max: floor_distance + 220)), toNode: background)
+        
+        whale.physicsBody = SKPhysicsBody(texture: whale.texture, size: whale.size)
+        
+        whale.physicsBody?.categoryBitMask = FSWhaleCategory
+        whale.physicsBody?.contactTestBitMask = FSPlayerCategory
+        whale.physicsBody?.collisionBitMask = FSPlayerCategory
+        whale.physicsBody?.dynamic = false
+        whale.zPosition = 21
+        
+        whale.runAction(self.whaleSwimAnimation())
+        whale.runAction(self.moveToTheLeftAnimation())
+        
+        background.addChild(whale)
+    }
+    
+    func initBoat() {
+        var boat:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(20, 20))
+        boat = SKSpriteNode(imageNamed: boatImage)
+        boat.position = self.convertPoint(CGPointMake(Float.range(boat_origin_x, max: boat_origin_x + 500), CGRectGetMaxY(screenSize) + boat.size.height / 3), toNode: background)
+        
+        boat.physicsBody = SKPhysicsBody(texture: boat.texture, size: boat.size)
+        
+        boat.physicsBody?.categoryBitMask = FSBoatCategory
+        boat.physicsBody?.contactTestBitMask = FSPlayerCategory
+        boat.physicsBody?.collisionBitMask = FSPlayerCategory
+        boat.physicsBody?.dynamic = false
+        boat.zPosition = 20
+        
+        background.addChild(boat)
     }
     
     func initWorld() {
@@ -216,104 +309,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(instructions)
     }
     
-    func initCoins() {
-        var coin:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(coinWidth, coinheight))
-        coin = SKSpriteNode(imageNamed: coinImage)
-        coin.position = self.convertPoint(CGPointMake(Float.range(coin_origin_x, max: coin_origin_x + 100), floor_distance + Float.range(50, max: screenSize.height - coin.size.height)), toNode: background)
-        
-        coin.physicsBody = SKPhysicsBody(texture: coin.texture, size: coin.size)
-        coin.setScale(0.4)
-        coin.physicsBody?.categoryBitMask = FSCoinCategory
-        coin.physicsBody?.contactTestBitMask = FSPlayerCategory
-        coin.physicsBody?.collisionBitMask = 0
-        coin.physicsBody?.dynamic = false
-        coin.zPosition = 10
-        
-        coin.runAction(self.spinAnimation())
-        
-        background.addChild(coin)
-    }
-    
-    func initBonusCoins() {
-        var bonusCoinY = floor_distance + 100
-        
-        for var i: Int = 0; i < bonusCoinCount; i++ {
-            var coin:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
-            coin = SKSpriteNode(imageNamed: coinImage)
-            
-            bonusCoinY = self.getNextYPosition(bonusCoinY)
-            
-            coin.position = self.convertPoint(CGPointMake(coin_origin_x + coin.frame.width * CGFloat(i), bonusCoinY), toNode: background)
-            
-            coin.physicsBody = SKPhysicsBody(texture: coin.texture, size: coin.size)
-            coin.setScale(0.4)
-            coin.physicsBody?.categoryBitMask = FSCoinCategory
-            coin.physicsBody?.contactTestBitMask = FSPlayerCategory
-            coin.physicsBody?.collisionBitMask = 0
-            coin.physicsBody?.dynamic = false
-            coin.zPosition = 10
-            
-            coin.runAction(self.spinAnimation())
-            
-            background.addChild(coin)
-        }
-    }
-    
-    func initCrabs() {
-        var crab:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
-        crab = SKSpriteNode(imageNamed: crabImage)
-        crab.position = self.convertPoint(CGPointMake(Float.range(crab_origin_x, max: crab_origin_x + 500), floor_distance + 20), toNode: background)
-        
-        crab.physicsBody = SKPhysicsBody(texture: crab.texture, size: crab.size)
-        crab.setScale(0.2)
-        crab.physicsBody?.categoryBitMask = FSCrabCategory
-        crab.physicsBody?.contactTestBitMask = FSPlayerCategory
-        crab.physicsBody?.collisionBitMask = FSPlayerCategory
-        crab.physicsBody?.dynamic = false
-        crab.zPosition = 20
-        
-        crab.runAction(self.crabAnimation(crab.position))
-        
-        background.addChild(crab)
-    }
-    
-    func initWhale() {
-        var whale:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
-        whale = SKSpriteNode(imageNamed: whaleImage)
-        whale.position = self.convertPoint(CGPointMake(Float.range(whale_origin_x, max: whale_origin_x + 500), Float.range(floor_distance, max: floor_distance + 220)), toNode: background)
-        
-        whale.physicsBody = SKPhysicsBody(texture: whale.texture, size: whale.size)
-        whale.setScale(0.5)
-        
-        whale.physicsBody?.categoryBitMask = FSWhaleCategory
-        whale.physicsBody?.contactTestBitMask = FSPlayerCategory
-        whale.physicsBody?.collisionBitMask = FSPlayerCategory
-        whale.physicsBody?.dynamic = false
-        whale.zPosition = 21
-        
-        whale.runAction(self.rotateMiniAnimation())
-        whale.runAction(self.moveToTheLeftAnimation())
-        
-        background.addChild(whale)
-    }
-    
-    func initBoat() {
-        var boat:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(20, 20))
-        boat = SKSpriteNode(imageNamed: boatImage)
-        boat.position = self.convertPoint(CGPointMake(Float.range(boat_origin_x, max: boat_origin_x + 500), CGRectGetMaxY(screenSize) + boat.size.height / 3), toNode: background)
-        
-        boat.physicsBody = SKPhysicsBody(texture: boat.texture, size: boat.size)
-        boat.setScale(1.0)
-        
-        boat.physicsBody?.categoryBitMask = FSBoatCategory
-        boat.physicsBody?.contactTestBitMask = FSPlayerCategory
-        boat.physicsBody?.collisionBitMask = FSPlayerCategory
-        boat.physicsBody?.dynamic = false
-        boat.zPosition = 20
-        
-        background.addChild(boat)
-    }
-    
     func initBackground() {
         self.addChild(background)
         
@@ -331,7 +326,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func initBubble() {
         var bubble:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(5, 50))
         bubble = SKSpriteNode(imageNamed: bubbleImage)
-        bubble.setScale(0.5)
+//        bubble.setScale(0.5)
         bubble.position = self.convertPoint(CGPointMake(700, floor_distance), toNode: background)
         
         bubble.zPosition = 30
@@ -506,15 +501,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
 // MARK: - Animation Functions
     func spinAnimation() -> SKAction {
-        let spinIn = SKAction.scaleXTo(0.5, duration: 0.5)
-        let spinOut = SKAction.scaleXTo(0.0, duration: 0.5)
+        let spinIn = SKAction.scaleXTo(0.0, duration: 0.5)
+        let spinOut = SKAction.scaleXTo(1.0, duration: 0.5)
         let sequence = SKAction.sequence([spinOut, spinIn])
         let spin = SKAction.repeatActionForever(sequence)
         
         return spin
     }
     
-    func rotateMiniAnimation() -> SKAction {
+    func whaleSwimAnimation() -> SKAction {
         let rotR = SKAction.rotateByAngle(0.15, duration: 0.2)
         let rotL = SKAction.rotateByAngle(-0.15, duration: 0.2)
         let sequence = SKAction.sequence([rotR, rotL, rotL, rotR])
@@ -523,24 +518,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return wiggle
     }
     
-    func jumpAnimation() -> SKAction {
-        let jumpUp = SKAction.scaleTo(0.2, duration: 0.5)
-        let jumpDown = SKAction.scaleTo(0.1, duration: 0.5)
-        let sequence = SKAction.sequence([jumpUp, jumpDown])
-        let jump = SKAction.repeatActionForever(sequence)
-        
-        return jump
-    }
-    
     func goingUpAnumation() -> SKAction {
-        
         let goingUp = SKAction .moveToY(CGRectGetMaxY(screenSize), duration: 10.0)
         
         return goingUp
     }
     
     func moveToTheLeftAnimation() -> SKAction {
-        let goingLeft = SKAction.moveToX(CGRectGetMinX(screenSize), duration: 40.0)
+        let goingLeft = SKAction.moveToX(CGRectGetMinX(screenSize), duration: 50.0)
         
         return goingLeft
     }
@@ -576,17 +561,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             fish.physicsBody?.affectedByGravity = true
             fish.physicsBody?.applyImpulse(CGVectorMake(0, 25))
             
-            self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(crabGeneratorWaitDuration), SKAction.runBlock { self.initCrabs()}])), withKey: crabGenerator)
+              self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(crabGeneratorWaitDuration), SKAction.runBlock { self.initCrabs()}])), withKey: crabGenerator)
             
-            self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(coinGeneratorWaitDuration), SKAction.runBlock { self.initCoins()}])), withKey: coinGenerator)
+              self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(coinGeneratorWaitDuration), SKAction.runBlock { self.initCoins()}])), withKey: coinGenerator)
             
-            self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(bonusGeneratorWaitDuration), SKAction.runBlock { self.initBonusCoins()}])), withKey: bonusCoinGenerator)
+              self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(bonusGeneratorWaitDuration), SKAction.runBlock { self.initBonusCoins()}])), withKey: bonusCoinGenerator)
             
-            self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(whaleGeneratorWaitDuration), SKAction.runBlock { self.initWhale()}])), withKey: whaleGenerator)
+              self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(whaleGeneratorWaitDuration), SKAction.runBlock { self.initWhale()}])), withKey: whaleGenerator)
             
-            self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(bubbleGeneratorWaitDuration), SKAction.runBlock { self.initBubble()}])), withKey: bubbleGenerator)
+              self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(bubbleGeneratorWaitDuration), SKAction.runBlock { self.initBubble()}])), withKey: bubbleGenerator)
             
-            self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(boatGeneratorWaitDuration), SKAction.runBlock { self.initBoat()}])), withKey: boatGenerator)
+              self.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.waitForDuration(boatGeneratorWaitDuration), SKAction.runBlock { self.initBoat()}])), withKey: boatGenerator)
         }
             
         else if state == .FSGameStatePlaying {
