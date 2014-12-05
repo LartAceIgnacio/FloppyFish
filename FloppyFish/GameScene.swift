@@ -39,17 +39,24 @@ var gameOverLabel                                 = SKLabelNode()
 // Floor height
 let floor_distance:CGFloat                        = 30.0
 
-// Crabs Origin
-let crab_origin_x:CGFloat                         = 682.0
-
-// Whale Origin
-let whale_origin_x:CGFloat                        = 600.0
-
-// Boat Origin
+// horizontal Origin
+let crab_origin_min_x:CGFloat                     = 682.0
+let crab_origin_max_x:CGFloat                     = crab_origin_min_x + 500
+let whale_origin_min_x:CGFloat                    = 600.0
+let whale_origin_max_x:CGFloat                    = whale_origin_min_x + 500
+let shark_origin_min_x:CGFloat                    = 650.0
+let shark_origin_max_x:CGFloat                    = shark_origin_min_x + 500
 let boat_origin_x:CGFloat                         = 625.0
+let coin_origin_min_x:CGFloat                     = 600.0
+let coin_origin_max_x:CGFloat                     = coin_origin_min_x + 100
+let bubble_origin_x:CGFloat                       = 700.0
 
-// Ring Origin
-let coin_origin_x:CGFloat                         = 600.0
+// Vertical Origin
+let crab_origin_y:CGFloat                         = floor_distance + 20
+let whale_origin_min_y:CGFloat                    = floor_distance
+let whale_origin_max_y:CGFloat                    = whale_origin_min_y + 220
+let shark_origin_min_y:CGFloat                    = floor_distance
+let shark_origin_max_y:CGFloat                    = shark_origin_min_y + 320
 
 // Instructions
 var instructions:SKSpriteNode                     = SKSpriteNode()
@@ -129,7 +136,7 @@ let startImage                                    = "start_image"
 let sharkImage                                    = "shark"
 
 // Font name
-let fontName                                      = "MarkerFelt-Wide"
+let defaultfontName                               = "MarkerFelt-Wide"
 let gameOverFontName                              = "Chalkduster"
 
 // NSUserDefaultsKey
@@ -200,7 +207,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func initCoins() {
         var coin:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(coinWidth, coinheight))
         coin = SKSpriteNode(imageNamed: coinImage)
-        coin.position = self.convertPoint(CGPointMake(Float.range(coin_origin_x, max: coin_origin_x + 100), floor_distance + Float.range(50, max: screenSize.height - coin.size.height)), toNode: background)
+        coin.position = self.convertPoint(CGPointMake(Float.range(coin_origin_min_x, max: coin_origin_max_x), floor_distance + Float.range(50, max: screenSize.height - coin.size.height)), toNode: background)
         
         coin.physicsBody = SKPhysicsBody(texture: coin.texture, size: coin.size)
         coin.physicsBody?.categoryBitMask = FSCoinCategory
@@ -223,7 +230,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             bonusCoinY = self.getNextYPosition(bonusCoinY)
             
-            coin.position = self.convertPoint(CGPointMake(coin_origin_x + coin.frame.width * CGFloat(i), bonusCoinY), toNode: background)
+            coin.position = self.convertPoint(CGPointMake(coin_origin_min_x + coin.frame.width * CGFloat(i), bonusCoinY), toNode: background)
             
             coin.physicsBody = SKPhysicsBody(texture: coin.texture, size: coin.size)
             coin.physicsBody?.categoryBitMask = FSCoinCategory
@@ -241,7 +248,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func initCrabs() {
         var crab:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
         crab = SKSpriteNode(imageNamed: crabImage)
-        crab.position = self.convertPoint(CGPointMake(Float.range(crab_origin_x, max: crab_origin_x + 500), floor_distance + 20), toNode: background)
+        crab.position = self.convertPoint(CGPointMake(Float.range(crab_origin_min_x, max: crab_origin_max_x), crab_origin_y), toNode: background)
         
         crab.physicsBody = SKPhysicsBody(texture: crab.texture, size: crab.size)
         crab.physicsBody?.categoryBitMask = FSCrabCategory
@@ -258,7 +265,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func initWhale() {
         var whale:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
         whale = SKSpriteNode(imageNamed: whaleImage)
-        whale.position = self.convertPoint(CGPointMake(Float.range(whale_origin_x, max: whale_origin_x + 500), Float.range(floor_distance, max: floor_distance + 220)), toNode: background)
+        whale.position = self.convertPoint(CGPointMake(Float.range(whale_origin_min_x, max: whale_origin_max_x), Float.range(whale_origin_min_y, max: whale_origin_max_y)), toNode: background)
         
         whale.physicsBody = SKPhysicsBody(texture: whale.texture, size: whale.size)
         
@@ -277,7 +284,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func initShark() {
         var shark:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(10, 30))
         shark = SKSpriteNode(imageNamed: sharkImage)
-        shark.position = self.convertPoint(CGPointMake(Float.range(whale_origin_x, max: whale_origin_x + 500), Float.range(floor_distance, max: floor_distance + 320)), toNode: background)
+        shark.position = self.convertPoint(CGPointMake(Float.range(shark_origin_min_x, max: shark_origin_max_x), Float.range(shark_origin_min_y, max: shark_origin_max_y)), toNode: background)
         
         shark.physicsBody = SKPhysicsBody(texture: shark.texture, size: shark.size)
         
@@ -312,11 +319,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func initBubble() {
         var bubble:SKSpriteNode = SKSpriteNode(color: UIColor.clearColor(), size: CGSizeMake(5, 50))
         bubble = SKSpriteNode(imageNamed: bubbleImage)
-        bubble.position = self.convertPoint(CGPointMake(700, floor_distance), toNode: background)
         
+        bubble.position = self.convertPoint(CGPointMake(bubble_origin_x, floor_distance), toNode: background)
         bubble.zPosition = bubbleZPosition
         
-        bubble.runAction(self.bubbleAnumation())
+        bubble.runAction(self.bubbleAnimation())
         
         background.addChild(bubble)
     }
@@ -332,7 +339,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func initScoreLabel() {
-        label_score = SKLabelNode(fontNamed: fontName)
+        label_score = SKLabelNode(fontNamed: defaultfontName)
         label_score.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMaxY(self.frame) - 100)
         label_score.text = "0"
         label_score.fontColor = UIColor .blackColor()
@@ -344,7 +351,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func initHighScoreLabel() {
         let topScore : Int = self.getTopScore()
         
-        label_highScore = SKLabelNode(fontNamed: fontName)
+        label_highScore = SKLabelNode(fontNamed: defaultfontName)
         
         label_highScore.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMaxY(self.frame) - 30)
         label_highScore.text = "Top Score : " + (topScore as NSNumber).stringValue
@@ -360,7 +367,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         instructions.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame) - 10)
         instructions.zPosition = instructionImageZPostion
         
-        instructionLabel = SKLabelNode(fontNamed: fontName)
+        instructionLabel = SKLabelNode(fontNamed: defaultfontName)
         instructionLabel.text = tapToStartMessage
         instructionLabel.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame) - 10)
         instructionLabel.fontSize = 20
@@ -569,18 +576,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let spinIn = SKAction.scaleXTo(0.0, duration: 0.5)
         let spinOut = SKAction.scaleXTo(1.0, duration: 0.5)
         let sequence = SKAction.sequence([spinOut, spinIn])
-        let spin = SKAction.repeatActionForever(sequence)
+        let spinAction = SKAction.repeatActionForever(sequence)
         
-        return spin
+        return spinAction
     }
     
     func whaleWiggleAnimation() -> SKAction {
         let rotR = SKAction.rotateByAngle(0.15, duration: 0.2)
         let rotL = SKAction.rotateByAngle(-0.15, duration: 0.2)
         let sequence = SKAction.sequence([rotR, rotL, rotL, rotR])
-        let wiggle = SKAction.repeatActionForever(sequence)
+        let wiggleAction = SKAction.repeatActionForever(sequence)
         
-        return wiggle
+        return wiggleAction
     }
     
     func whaleSwimAnimation(position:CGPoint) -> SKAction {
@@ -589,7 +596,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return goingLeft
     }
     
-    func bubbleAnumation() -> SKAction {
+    func bubbleAnimation() -> SKAction {
         let goingUp = SKAction .moveToY(CGRectGetMaxY(screenSize), duration: 10.0)
         
         return goingUp
